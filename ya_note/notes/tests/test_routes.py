@@ -21,53 +21,50 @@ class TestRoutes(TestCase):
             author=cls.author
         )
 
-    def test_pages_availability(self):
-        urls = (
-            ('notes:home'),
-            ('users:login'),
-            ('users:logout'),
-            ('users:signup'),
-        )
-        for name in urls:
-            with self.subTest(name=name):
-                url = reverse(name)
-                response = self.client.get(url)
-                self.assertEqual(response.status_code, HTTPStatus.OK)
-
     def test_auth_user_permissions(self):
+        """Доступ к страницам разным пользователям"""
         urls = (
-            ('notes:list'),
-            ('notes:success'),
-            ('notes:add'),
+            ('notes:home', None, None, HTTPStatus.OK),
+            ('users:login', None, None, HTTPStatus.OK),
+            ('users:logout', None, None, HTTPStatus.OK),
+            ('users:signup', None, None, HTTPStatus.OK),
+            ('notes:edit', (self.notes.slug,), self.author, HTTPStatus.OK),
+            ('notes:detail', (self.notes.slug,), self.author, HTTPStatus.OK),
+            ('notes:delete', (self.notes.slug,), self.author, HTTPStatus.OK),
+            (
+                'notes:edit',
+                (self.notes.slug,),
+                self.reader,
+                HTTPStatus.NOT_FOUND
+            ),
+            (
+                'notes:detail',
+                (self.notes.slug,),
+                self.reader,
+                HTTPStatus.NOT_FOUND
+            ),
+            (
+                'notes:delete',
+                (self.notes.slug,),
+                self.reader,
+                HTTPStatus.NOT_FOUND
+            ),
+            ('notes:list', None, self.reader, HTTPStatus.OK),
+            ('notes:success', None, self.reader, HTTPStatus.OK),
+            ('notes:add', None, self.reader, HTTPStatus.OK),
         )
-
-        for name in urls:
-            url = reverse(name)
-            self.client.force_login(self.author)
-            response = self.client.get(url)
-            self.assertEqual(response.status_code, HTTPStatus.OK)
-
-    def test_note_edit_and_delete(self):
-        users_statuses = (
-            (self.author, HTTPStatus.OK),
-            (self.reader, HTTPStatus.NOT_FOUND),
-        )
-
-        urls = (
-            ('notes:edit', (self.notes.slug,)),
-            ('notes:detail', (self.notes.slug,)),
-            ('notes:delete', (self.notes.slug,)),
-        )
-
-        for user, status in users_statuses:
-            self.client.force_login(user)
-            for name, args in urls:
-                with self.subTest(user=user, name=name):
-                    url = reverse(name, args=args)
+        for url_name, arg, user, status in urls:
+            with self.subTest(url_name=url_name, user=user):
+                url = reverse(url_name, args=arg)
+                if user:
+                    self.client.force_login(user)
                     response = self.client.get(url)
-                    self.assertEqual(response.status_code, status)
+                else:
+                    response = self.client.get(url)
+                self.assertEqual(response.status_code, status)
 
     def test_redirect_for_anonymous_client(self):
+        """Проверка редиректа на страницу логина"""
         login_url = reverse('users:login')
 
         urls = (

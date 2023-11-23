@@ -3,7 +3,7 @@ from django.conf import settings
 import pytest
 
 from news.models import Comment
-
+from news.forms import CommentForm
 HOME_URL = reverse("news:home")
 
 
@@ -44,3 +44,6 @@ def test_different_users_has_form(parametrized_client, news, news_in_list):
     detail_url = reverse("news:detail", args=(news.id,))
     response = parametrized_client.get(detail_url)
     assert ("form" in response.context) is news_in_list
+    if news_in_list:
+        form = response.context["form"]
+        assert isinstance(form, CommentForm)
