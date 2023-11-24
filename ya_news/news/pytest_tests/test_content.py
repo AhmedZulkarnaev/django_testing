@@ -8,14 +8,16 @@ HOME_URL = reverse("news:home")
 
 
 @pytest.mark.django_db
-def test_count_news(client, news_count):
+def test_count_news(client, news):
+    """Проверка кол-ва новостей на странице"""
     response = client.get(HOME_URL)
     object_list = response.context["object_list"]
     assert len(object_list) == settings.NEWS_COUNT_ON_HOME_PAGE
 
 
 @pytest.mark.django_db
-def test_news_order(client, news_count):
+def test_news_order(client, news):
+    """Провера сортировки новостей"""
     response = client.get(HOME_URL)
     object_list = response.context["object_list"]
     all_dates = [news.date for news in object_list]
@@ -24,7 +26,8 @@ def test_news_order(client, news_count):
 
 
 @pytest.mark.django_db
-def test_comments_order(client, comment_count):
+def test_comments_order(client, comments):
+    """Проверка сортировки комментариев"""
     response = client.get(HOME_URL)
     object_list = response.context["object_list"]
     comments = [obj for obj in object_list if isinstance(obj, Comment)]
@@ -40,8 +43,11 @@ def test_comments_order(client, comment_count):
         (pytest.lazy_fixture("client"), False),
     ),
 )
-def test_different_users_has_form(parametrized_client, news, news_in_list):
-    detail_url = reverse("news:detail", args=(news.id,))
+def test_different_users_has_form(
+    parametrized_client, news, news_in_list, news_id
+):
+    """Проверка на наличие формы"""
+    detail_url = reverse("news:detail", args=(news_id))
     response = parametrized_client.get(detail_url)
     assert ("form" in response.context) is news_in_list
     if news_in_list:

@@ -18,7 +18,7 @@ def author_client(author, client):
 
 
 @pytest.fixture
-def news_count():
+def news():
     today = datetime.today()
     all_news = [
         News(
@@ -33,20 +33,20 @@ def news_count():
 
 
 @pytest.fixture
-def news(author):
+def new(author):
     new = News.objects.create(
         title="Заголовок",
-        text="Текст заметки",
+        text="Текст новости",
     )
     return new
 
 
 @pytest.fixture
-def comment_count(author, news):
+def comments(author, new):
     now = timezone.now()
     for index in range(2):
         comment = Comment.objects.create(
-            news=news,
+            news=new,
             author=author,
             text=f"Tекст {index}",
         )
@@ -56,27 +56,28 @@ def comment_count(author, news):
 
 
 @pytest.fixture
-def comment(author, news):
+def comment(author, new):
     comment = Comment.objects.create(
         text="Текст заметки",
         author=author,
-        news=news,
+        news=new,
     )
     return comment
 
 
 @pytest.fixture
-def id_for_args(news):
-    return (news.id,)
+def news_id(new):
+    return (new.id,)
 
 
 @pytest.fixture
-def id_for_comment(comment):
-    return (comment.pk,)
+def comment_id(comment):
+    return (comment.id,)
 
 
 @pytest.fixture
 def form_data():
     return {
         "text": "Новый текст",
+        "new": new,
     }
