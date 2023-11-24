@@ -28,7 +28,7 @@ def test_anonymous_user_cant_create_comment(client, form_data):
     """Анонимный юзер не может комментировать"""
     comments_before = Comment.objects.count()
     url = ("news:detail", pytest.lazy_fixture("news_id"))
-    response = client.post(url, data=form_data)
+    client.post(url, data=form_data)
     comments_after = Comment.objects.count()
     assert comments_after == comments_before
 
