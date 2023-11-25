@@ -20,14 +20,25 @@ class TestRoutes(TestCase):
             text='Текст',
             author=cls.author
         )
+    # Я решил разделить на 3 функции
+
+    def test_anonim_user_permissions(self):
+        """Доступ к страницам неавторизованным пользователям"""
+        urls = (
+            ('notes:home', HTTPStatus.OK),
+            ('users:login', HTTPStatus.OK),
+            ('users:logout', HTTPStatus.OK),
+            ('users:signup', HTTPStatus.OK),
+        )
+        for name, status in urls:
+            with self.subTest(name=name):
+                url = reverse(name)
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, status)
 
     def test_auth_user_permissions(self):
-        """Доступ к страницам разным пользователям"""
+        """Доступ к страницам авторизованным пользователям"""
         urls = (
-            ('notes:home', None, None, HTTPStatus.OK),
-            ('users:login', None, None, HTTPStatus.OK),
-            ('users:logout', None, None, HTTPStatus.OK),
-            ('users:signup', None, None, HTTPStatus.OK),
             ('notes:edit', (self.notes.slug,), self.author, HTTPStatus.OK),
             ('notes:detail', (self.notes.slug,), self.author, HTTPStatus.OK),
             ('notes:delete', (self.notes.slug,), self.author, HTTPStatus.OK),
@@ -53,15 +64,12 @@ class TestRoutes(TestCase):
             ('notes:success', None, self.reader, HTTPStatus.OK),
             ('notes:add', None, self.reader, HTTPStatus.OK),
         )
-        for url_name, arg, user, status in urls:
+        for url_name, arg, user, expected_status in urls:
             with self.subTest(url_name=url_name, user=user):
                 url = reverse(url_name, args=arg)
-                if user:
-                    self.client.force_login(user)
-                    response = self.client.get(url)
-                else:
-                    response = self.client.get(url)
-                self.assertEqual(response.status_code, status)
+                self.client.force_login(user)
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, expected_status)
 
     def test_redirect_for_anonymous_client(self):
         """Проверка редиректа на страницу логина"""

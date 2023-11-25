@@ -7,6 +7,11 @@ from news.models import News, Comment
 
 
 @pytest.fixture
+def anonymous_client(client):
+    return client
+
+
+@pytest.fixture
 def author(django_user_model):
     return django_user_model.objects.create(username="Автор")
 

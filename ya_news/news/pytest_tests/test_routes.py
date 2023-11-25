@@ -1,20 +1,45 @@
 from http import HTTPStatus
-
-from pytest_django.asserts import assertRedirects
 from django.urls import reverse
-
 import pytest
+from pytest_django.asserts import assertRedirects
+
+# Пощадите
 
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "name, args, user, user_status",
     (
-        ("news:home", None, None, HTTPStatus.OK),
-        ("users:login", None, None, HTTPStatus.OK),
-        ("users:logout", None, None, HTTPStatus.OK),
-        ("users:signup", None, None, HTTPStatus.OK),
-        ("news:detail", pytest.lazy_fixture("news_id"), None, HTTPStatus.OK),
+        (
+            "news:home",
+            None,
+            pytest.lazy_fixture("anonymous_client"),
+            HTTPStatus.OK
+        ),
+        (
+            "users:login",
+            None,
+            pytest.lazy_fixture("anonymous_client"),
+            HTTPStatus.OK
+        ),
+        (
+            "users:logout",
+            None,
+            pytest.lazy_fixture("anonymous_client"),
+            HTTPStatus.OK
+        ),
+        (
+            "users:signup",
+            None,
+            pytest.lazy_fixture("anonymous_client"),
+            HTTPStatus.OK
+        ),
+        (
+            "news:detail",
+            pytest.lazy_fixture("news_id"),
+            pytest.lazy_fixture("anonymous_client"),
+            HTTPStatus.OK
+        ),
         (
             "news:edit",
             pytest.lazy_fixture("comment_id"),
@@ -46,10 +71,7 @@ def test_pages_availability_for_differents_user(
     client, name, args, user, user_status
 ):
     url = reverse(name, args=args)
-    if user:
-        response = user.get(url)
-    else:
-        response = client.get(url)
+    response = user.get(url)
     assert response.status_code == user_status
 
 

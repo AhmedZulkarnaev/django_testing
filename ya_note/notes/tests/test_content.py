@@ -28,16 +28,18 @@ class TestFormPage(TestCase):
     def test_notes_of_one_user_only(self):
         """Заметки одного юзера не попадают в заметки другого"""
         data = (
-            (self.note, True),
-            (self.another_note, False),
+            (self.note, self.assertIn),
+            (self.another_note, self.assertNotIn),
         )
-        for note, value in data:
-            with self.subTest(note=note, value=value):
-                url = reverse('notes:list')
-                self.client.force_login(self.author)
-                response = self.client.get(url)
-                object_list = response.context['object_list']
-                self.assertEqual(value, note in object_list)
+
+        for note, assertion in data:
+            url = reverse('notes:list')
+            self.client.force_login(self.author)
+            response = self.client.get(url)
+            object_list = response.context['object_list']
+
+            with self.subTest(note=note, assertion=assertion):
+                assertion(note, object_list)
 
     def test_user_has_form(self):
         """У пользователся отображается форма"""
