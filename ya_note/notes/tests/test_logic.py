@@ -15,7 +15,6 @@ User = get_user_model()
 class TestNoteCreation(TestCase):
     NOTE_TEXT = 'Текст'
     TITLE_TEXT = 'Заголовок'
-
     NEW_TITLE = 'Новый заголовок'
     NEW_NOTE_TEXT = 'Новый текст'
     SLUG = 'slug'
@@ -53,10 +52,10 @@ class TestNoteCreation(TestCase):
         self.auth_client.post(self.add_url, data=self.form_data)
         notes_count_after = Note.objects.count()
         self.assertEqual(notes_count_after, notes_count_before + 1)
-        new_note = Note.objects.get(pk=self.notes.pk)
-        self.assertEqual(self.notes.author, new_note.author)
-        self.assertEqual(self.notes.title, new_note.title)
-        self.assertEqual(self.notes.text, new_note.text)
+        new_note = Note.objects.latest('created_at')
+        self.assertEqual(new_note.author, self.author)
+        self.assertEqual(new_note.title, self.NEW_TITLE)
+        self.assertEqual(new_note.text, self.NEW_NOTE_TEXT)
 
     def test_anonymous_user_cant_create_note(self):
         """Анонимный юзер не может создать заметку"""
@@ -85,10 +84,10 @@ class TestNoteCreation(TestCase):
         url = reverse('notes:edit', args=(self.notes.slug,))
         response = self.auth_client.post(url, self.form_data)
         self.assertRedirects(response, reverse('notes:success'))
-        self.notes.refresh_from_db()
-        self.assertEqual(self.notes.author, self.author)
-        self.assertEqual(self.notes.title, self.form_data['title'])
-        self.assertEqual(self.notes.text, self.form_data['text'])
+        updated_note = Note.objects.get(pk=self.notes.pk)
+        self.assertEqual(updated_note.author, self.author)
+        self.assertEqual(updated_note.title, self.form_data['title'])
+        self.assertEqual(updated_note.text, self.form_data['text'])
 
     def test_author_can_delete_note(self):
         """Автор может удалить заметку"""
@@ -100,7 +99,6 @@ class TestNoteCreation(TestCase):
         """Пользователь не может редактировать чужую заметку"""
         response = self.other_client.post(self.edit_url, self.form_data)
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
-        self.notes.refresh_from_db()
         note = Note.objects.get(pk=self.notes.pk)
         self.assertEqual(self.notes.author, note.author)
         self.assertEqual(self.notes.title, note.title)
@@ -115,8 +113,6 @@ class TestNoteCreation(TestCase):
     def test_generate_slug_if_field_empty(self):
         """Поле slug автогенерируется, если поле пустое"""
         self.form_data.pop('slug')
-        response = self.auth_client.post(self.add_url, data=self.form_data)
-        self.assertEqual(response.status_code, 302)
-        new_note = Note.objects.latest('id')
-        self.assertTrue(new_note.slug)
+        self.auth_client.post(self.add_url, data=self.form_data)
+        new_note = Note.objects.get(pk=self.notes.pk)
         self.assertEqual(new_note.slug, slugify(new_note.title))

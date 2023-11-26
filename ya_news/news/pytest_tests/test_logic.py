@@ -1,4 +1,5 @@
 from http import HTTPStatus
+
 from django.urls import reverse
 import pytest
 from pytest_django.asserts import assertRedirects, assertFormError
@@ -13,14 +14,15 @@ def test_authenticated_user_can_post_comment(
 ):
     """Авторизованный юзер может комментировать"""
     url = reverse("news:detail", args=news_id)
-    comments_before = Comment.objects.filter(news=new).count()
+    Comment.objects.all().delete()
+    comment_before = Comment.objects.count()
     response = author_client.post(url, data=form_data)
     assertRedirects(response, f'{url}#comments')
-    comments_after = Comment.objects.filter(news=new).count()
-    assert comments_after == comments_before + 1
-    latest_comment = Comment.objects.filter(news=new).last()
-    assert latest_comment.author == author
-    assert latest_comment.text == form_data['text']
+    comments_after = Comment.objects.count()
+    assert comments_after == comment_before + 1
+    get_comment = Comment.objects.get(news=new)
+    assert get_comment.author == author
+    assert get_comment.text == form_data['text']
 
 
 @pytest.mark.django_db

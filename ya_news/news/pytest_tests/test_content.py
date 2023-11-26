@@ -52,6 +52,12 @@ def test_different_users_has_form(
     detail_url = reverse("news:detail", args=(news_id))
     response = parametrized_client.get(detail_url)
     assert ("form" in response.context) is news_in_list
-    if news_in_list:
-        form = response.context["form"]
-        assert isinstance(form, CommentForm)
+
+
+@pytest.mark.django_db(transaction=True)
+def test_form_instance(author_client, news, news_id):
+    """Проверка типа формы, если новость присутствует в списке"""
+    detail_url = reverse("news:detail", args=(news_id))
+    response = author_client.get(detail_url)
+    form = response.context.get("form")
+    assert isinstance(form, CommentForm)
