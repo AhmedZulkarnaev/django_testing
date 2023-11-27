@@ -72,12 +72,12 @@ def comment(author, new):
 
 @pytest.fixture
 def news_id(new):
-    return (new.id,)
+    return new.id,
 
 
 @pytest.fixture
 def comment_id(comment):
-    return (comment.id,)
+    return comment.id,
 
 
 @pytest.fixture

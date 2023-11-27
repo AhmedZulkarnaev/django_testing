@@ -1,8 +1,8 @@
+from http import HTTPStatus
+
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
-from http import HTTPStatus
-
 from pytils.translit import slugify
 
 from notes.models import Note
@@ -48,14 +48,14 @@ class TestNoteCreation(TestCase):
 
     def test_auth_user_can_create_note(self):
         """Авторизованный юзер может создать заметку"""
-        notes_count_before = Note.objects.count()
+        Note.objects.all().delete()
         self.auth_client.post(self.add_url, data=self.form_data)
-        notes_count_after = Note.objects.count()
-        self.assertEqual(notes_count_after, notes_count_before + 1)
-        new_note = Note.objects.latest('created_at')
-        self.assertEqual(new_note.author, self.author)
-        self.assertEqual(new_note.title, self.NEW_TITLE)
+        notes_count = Note.objects.count()
+        self.assertEqual(notes_count, 1)
+        new_note = Note.objects.get()
         self.assertEqual(new_note.text, self.NEW_NOTE_TEXT)
+        self.assertEqual(new_note.title, self.NEW_TITLE)
+        self.assertEqual(new_note.author, self.author)
 
     def test_anonymous_user_cant_create_note(self):
         """Анонимный юзер не может создать заметку"""
