@@ -7,59 +7,50 @@ from pytest_django.asserts import assertRedirects
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "name, args, user, user_status",
+    "name, user, user_status",
     (
         (
-            "news:home",
-            None,
+            reverse("news:home"),
             pytest.lazy_fixture("anonymous_client"),
             HTTPStatus.OK
         ),
         (
-            "users:login",
-            None,
+            reverse("users:login"),
             pytest.lazy_fixture("anonymous_client"),
             HTTPStatus.OK
         ),
         (
-            "users:logout",
-            None,
+            reverse("users:logout"),
             pytest.lazy_fixture("anonymous_client"),
             HTTPStatus.OK
         ),
         (
-            "users:signup",
-            None,
+            reverse("users:signup"),
             pytest.lazy_fixture("anonymous_client"),
             HTTPStatus.OK
         ),
         (
-            "news:detail",
-            pytest.lazy_fixture("news_id"),
+            pytest.lazy_fixture("news_detail_url"),
             pytest.lazy_fixture("anonymous_client"),
             HTTPStatus.OK
         ),
         (
-            "news:edit",
-            pytest.lazy_fixture("comment_id"),
+            pytest.lazy_fixture("news_edit_url"),
             pytest.lazy_fixture("author_client"),
             HTTPStatus.OK
         ),
         (
-            "news:delete",
-            pytest.lazy_fixture("comment_id"),
+            pytest.lazy_fixture("news_delete_url"),
             pytest.lazy_fixture("author_client"),
             HTTPStatus.OK
         ),
         (
-            "news:edit",
-            pytest.lazy_fixture("comment_id"),
+            pytest.lazy_fixture("news_edit_url"),
             pytest.lazy_fixture("admin_client"),
             HTTPStatus.NOT_FOUND
         ),
         (
-            "news:delete",
-            pytest.lazy_fixture("comment_id"),
+            pytest.lazy_fixture("news_delete_url"),
             pytest.lazy_fixture("admin_client"),
             HTTPStatus.NOT_FOUND
         ),
@@ -67,10 +58,9 @@ from pytest_django.asserts import assertRedirects
     ),
 )
 def test_pages_availability_for_differents_user(
-    client, name, args, user, user_status
+    client, name, user, user_status
 ):
-    url = reverse(name, args=args)
-    response = user.get(url)
+    response = user.get(name)
     assert response.status_code == user_status
 
 
